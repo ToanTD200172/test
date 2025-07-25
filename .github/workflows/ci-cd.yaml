@@ -26,3 +26,21 @@ jobs:
         run: |
           docker tag myapp:latest ${{ secrets.DOCKER_USERNAME }}/myapp:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            docker pull mydockerhub/myapp:latest
+            docker stop myapp || true
+            docker rm myapp || true
+            docker run -d -p 3000:3000 --name myapp mydockerhub/myapp:latest
+
+          
